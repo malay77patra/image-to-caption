@@ -60,6 +60,7 @@ def upload_url():
         else:
             return jsonify({'error': 'Failed to download image from the provided URL.'}), 404
     except Exception as e:
+        print(e)
         return jsonify({'error': f'An error occurred'}), 404
     
 
