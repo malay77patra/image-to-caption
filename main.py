@@ -7,6 +7,8 @@ from uuid import uuid4
 
 app = Flask(__name__)
 
+if not os.path.exists("uploads"):
+    os.makedirs("uploads")
 
 def is_image_url(url):
     try:
