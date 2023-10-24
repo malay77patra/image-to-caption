@@ -83,13 +83,12 @@ def dashboard():
 def generate_caption():
     try:
         data = request.get_json()
-        image_path = f"/uploads/{data['fileid']}"
+        image_path = os.path.join("uploads", data['fileid'])
         start_with = data['starttxt']
-        print("Analyzing the image...")
         process = subprocess.Popen(['python', 'aiutils.py', start_with, image_path], stdout=subprocess.PIPE)
         output, _ = process.communicate()
         caption = output.decode('utf-8').strip()
-        print("Success !\nCaption:", caption)
+        print(caption)
         return jsonify({"caption": caption})
     except Exception as e:
         print(e)
@@ -97,4 +96,4 @@ def generate_caption():
     
 
 if __name__ == '__main__':
-    app.run(port=3000, debug=True)
+    app.run()
