@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard -Captionify</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            height: 100vh;
+            width: 100vw;
+            background-image: linear-gradient(to right top, #e5c5ef, #e7d0f4, #ebdcf8, #efe6fb, #f5f1fd, #f6f2fe, #f7f4fe, #f8f5ff, #f4edff, #f0e5ff, #eeddff, #ecd4ff);
+            display: flex;
+            flex-direction: column;
+            font-family: Inter, sans-serif;
+            color: #282a3a;
+            text-align: center;
+        }
+
+        nav {
+            background-color: #f6f2fe;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 10px;
+        }
+
+        nav img {
+            height: 2rem;
+        }
+
+        nav span {
+            font-family: cursive;
+            font-weight: 900;
+            color: #2d94ec;
+            font-size: 1.5rem;
+        }
+
+        body>main {
+            flex: 1;
+            display: flex;
+        }
+
+        section {
+            height: 100%;
+        }
+
+        section:nth-child(1) {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        section:nth-child(2) {
+            width: 30vw;
+            background-color: #fff;
+            border-radius: 24px 0 0 24px;
+        }
+
+        .preview-img {
+            max-height: 70vh;
+            max-width: 60vw;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+        }
+
+        .editor {
+            padding: 1rem;
+            box-sizing: border-box;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .editor button {
+            position: relative;
+            padding: 0;
+            border: none;
+            width: 80%;
+            height: 40px;
+            border-radius: 8px;
+            background: linear-gradient(90deg, rgba(255, 255, 255, 1) 0%, rgba(222, 221, 255, 1) 100%);
+            font-weight: bold;
+            color: #626ADF;
+        }
+
+        .editor label {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #FC5CFF -4%, #2520F6 100%);
+            -webkit-mask: linear-gradient(90deg, #FC5CFF -4%, #2520F6 100%) content-box, linear-gradient(90deg, #FC5CFF -4%, #2520F6 100%);
+            -webkit-mask-composite: xor;
+            padding: 2px;
+            border-radius: 8px;
+            border: none;
+            box-sizing: border-box;
+        }
+
+        .caption-box {
+            width: 80%;
+            display: block;
+            margin: 0 auto;
+            font-family: monospace;
+            color: #000000;
+            overflow: hidden;
+        }
+
+        .caption-box>p {
+            background-color: rgba(98, 106, 223, .05);
+            padding: 10px;
+            text-align: left;
+            border-radius: 5px;
+            min-height: 1rem;
+        }
+
+        .preview {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .bottom-bar {
+            width: 100%;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .bottom-bar input {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #cbcad5;
+            outline: none;
+            width: 40vw;
+            font-family: monospace;
+        }
+
+        .button-36 {
+            background-image: linear-gradient(92.88deg, #455EB5 9.16%, #5643CC 43.89%, #673FD7 64.72%);
+            border-radius: 8px;
+            border-style: none;
+            box-sizing: border-box;
+            color: #FFFFFF;
+            cursor: pointer;
+            flex-shrink: 0;
+            font-family: "Inter UI", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+            font-size: 16px;
+            font-weight: 500;
+            text-align: center;
+            text-shadow: rgba(0, 0, 0, 0.25) 0 3px 8px;
+            transition: all .5s;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 110px;
+            height: 40px;
+        }
+
+        .button-36:hover {
+            box-shadow: rgba(80, 63, 205, 0.5) 0 1px 30px;
+            transition-duration: .1s;
+        }
+
+        @keyframes loading {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .button-36 img {
+            height: 1rem;
+            animation: loading 1s linear infinite;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <img src="./assets/captionify.png" />
+        <span>Captionify</span>
+    </nav>
+    <main>
+        <section>
+            <div class="preview">
+                <img src="/uploads/{{ image_id }}" class="preview-img" />
+            </div>
+            <div class="bottom-bar">
+                <input placeholder="Start caption with" id="start-with"/>
+                <button class="button-36" onclick="getCaption(this)" id="generate-btn">Generate✨</button>
+            </div>
+        </section>
+        <section class="editor">
+            <button>Generated caption<label></label></button>
+            <div class="caption-box" id="caption-box">
+                <p id="cap-txt"></p>
+            </div>
+        </section>
+    </main>
+    <script>
+        const captionBox = document.getElementById('caption-box');
+        const capTxt = document.getElementById('cap-txt');
+        const generateBtn = document.getElementById('generate-btn');
+        const captionStartWith = document.getElementById('start-with');
+
+        function startAnimation() {
+            capTxt.innerHTML = '';
+            generateBtn.innerHTML = `<img src="./assets/loading.svg" />`;
+        }
+
+        function stopAnimation() {
+            generateBtn.innerHTML = 'Generate✨';
+        }
+
+        function generateCaption(txt) {
+            var words = txt.split(' ');
+            var i = 0;
+            var speed = 200;
+
+            function appendWord() {
+                if (i < words.length) {
+                    capTxt.innerHTML += words[i] + ' ';
+                    i++;
+                    setTimeout(appendWord, speed);
+                }
+            }
+
+            appendWord();
+        }
+
+        function generateCaptionError(txt) {
+            capTxt.style.color = '#ff0000';
+            capTxt.innerHTML = txt;
+            capTxt.style.color = '#000000';
+        }
+
+        function getCaption(itSelf) {
+            startAnimation();
+            const fileid = '{{ image_id }}';
+            const captionStart = captionStartWith.value.trim();
+            fetch('generate-caption', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ fileid: fileid, starttxt: captionStart })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    stopAnimation();
+                    if (!data.error) {
+                        generateCaption(data.caption);
+                    } else {
+                        generateCaptionError(data.error);
+                    }
+                })
+                .catch((error) => {
+                    generateCaptionError('Something went wrong');
+                });
+        }
+    </script>
+</body>
+
+</html>

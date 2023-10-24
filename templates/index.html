@@ -277,10 +277,10 @@
                     })
                         .then(response => response.json())
                         .then(data => {
-                            if (!data.error){
+                            if (!data.error) {
                                 window.location.href = `/dashboard?id=${data.fileid}`;
-                            }else {
-                                window.location.href = `/?error=${data.error}`;  
+                            } else {
+                                window.location.href = `/?error=${data.error}`;
                             }
                         })
                         .catch((error) => {
@@ -320,10 +320,7 @@
                     xhr.open('POST', '/upload-image', true);
 
                     xhr.upload.onprogress = function (e) {
-                        if (e.lengthComputable) {
-                            const percentComplete = (e.loaded / e.total) * 100;
-                            uploadBox.innerHTML = `${percentComplete}%`;
-                        }
+                        uploadBox.innerHTML = 'Uploading...';
                     };
 
                     xhr.onload = function () {

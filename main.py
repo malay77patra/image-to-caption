@@ -6,6 +6,7 @@ from uuid import uuid4
 
 
 app = Flask(__name__)
+uploads_dir = 'uploads'
 
 
 def is_image_url(url):
@@ -36,7 +37,7 @@ def upload_image():
         return jsonify({'error': 'No selected file'}), 404
     if file:
         filename = f"file-{uuid4()}.{file.filename.split('.')[-1]}"
-        file.save(os.path.join("uploads", filename))
+        file.save(os.path.join(uploads_dir, filename))
         return jsonify({'fileid': filename}), 200
     
 @app.route('/upload-url', methods=['POST'])
@@ -54,7 +55,7 @@ def upload_url():
         response = requests.get(url)
         if response.status_code == 200:
             filename = f"file-{uuid4()}.{url_data[1]}"
-            with open(os.path.join("uploads", filename), 'wb') as f:
+            with open(os.path.join(uploads_dir, filename), 'wb') as f:
                 f.write(response.content)
             return jsonify({'fileid': filename}), 200
         else:
@@ -62,12 +63,35 @@ def upload_url():
     except Exception as e:
         return jsonify({'error': f'An error occurred'}), 404
     
+@app.route('/uploads/<img_name>')
+def get_file(img_name):
+    if os.path.exists(os.path.join(uploads_dir, img_name)):
+        return send_from_directory(uploads_dir, img_name)
+    else:
+        return "File not found", 404
 
     
 @app.route("/dashboard")
 def dashboard():
-    file_id = request.args.get('id')
-    return f'File ID: {file_id}'
+    image_id = request.args.get('id')
+    return render_template("dashboard.html", image_id=image_id)
+
+@app.route("/generate-caption", methods=["POST"])
+def generate_caption():
+    try:
+        data = request.get_json()
+        image_path = f"/uploads/{data['fileid']}"
+        start_with = data['starttxt']
+        print("Analyzing the image...")
+        process = subprocess.Popen(['python', 'aiutils.py', start_with, image_path], stdout=subprocess.PIPE)
+        output, _ = process.communicate()
+        caption = output.decode('utf-8').strip()
+        print("Success !\nCaption:", caption)
+        return jsonify({"caption": caption})
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "something went wrong"})
+    
 
 if __name__ == '__main__':
     app.run(port=3000, debug=True)
