@@ -8,6 +8,8 @@ from uuid import uuid4
 app = Flask(__name__)
 uploads_dir = 'uploads'
 
+if not os.path.exists("uploads"):
+    os.makedirs("uploads")
 
 def is_image_url(url):
     try:
@@ -61,6 +63,7 @@ def upload_url():
         else:
             return jsonify({'error': 'Failed to download image from the provided URL.'}), 404
     except Exception as e:
+        print(e)
         return jsonify({'error': f'An error occurred'}), 404
     
 @app.route('/uploads/<img_name>')
