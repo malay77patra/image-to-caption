@@ -71,7 +71,7 @@
         }
 
         .editor {
-            padding: 1rem;
+            padding: 2rem 1rem;
             box-sizing: border-box;
             height: 100%;
             overflow: hidden;
@@ -109,8 +109,11 @@
             display: block;
             margin: 0 auto;
             font-family: monospace;
+            font-weight: bold;
+            font-size: 1rem;
             color: #000000;
             overflow: hidden;
+            text-align: right;
         }
 
         .caption-box>p {
@@ -119,6 +122,16 @@
             text-align: left;
             border-radius: 5px;
             min-height: 1rem;
+        }
+
+        .caption-box img {
+            height: 1rem;
+            cursor: pointer;
+            transition: filter ease-in-out 0.2s;
+        }
+
+        .caption-box img:hover {
+            filter: brightness(0);
         }
 
         .preview {
@@ -143,7 +156,12 @@
             border: 1px solid #cbcad5;
             outline: none;
             width: 40vw;
-            font-family: monospace;
+            font-weight: 600;
+            transition: border ease-in-out 0.2s;
+        }
+
+        .bottom-bar input:focus {
+            border: 1px solid #2520F6;
         }
 
         .button-36 {
@@ -204,7 +222,7 @@
                 <img src="/uploads/{{ image_id }}" class="preview-img" />
             </div>
             <div class="bottom-bar">
-                <input placeholder="Start caption with" id="start-with"/>
+                <input placeholder="Start caption with" id="start-with" />
                 <button class="button-36" onclick="getCaption(this)" id="generate-btn">Generate✨</button>
             </div>
         </section>
@@ -212,6 +230,7 @@
             <button>Generated caption<label></label></button>
             <div class="caption-box" id="caption-box">
                 <p id="cap-txt"></p>
+                <img src="./assets/copy.svg" onclick="copyCaption(this)" />
             </div>
         </section>
     </main>
@@ -228,6 +247,17 @@
 
         function stopAnimation() {
             generateBtn.innerHTML = 'Generate✨';
+        }
+
+        function copyCaption(itSelf) {
+            const itsP = itSelf.parentNode.querySelector('#cap-txt');
+            const text = itsP.innerHTML;
+
+            navigator.clipboard.writeText(text).then(function () {
+                console.log('Text copied to clipboard');
+            }, function (err) {
+                console.error('Could not copy text: ', err);
+            });
         }
 
         function generateCaption(txt) {

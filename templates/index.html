@@ -99,6 +99,7 @@
             overflow: hidden;
             align-items: center;
             justify-content: center;
+            position: relative;
         }
 
         #up-half {
@@ -180,6 +181,33 @@
             transform: translate(-50%, -100%);
             transition: all ease-in-out 0.3s;
         }
+
+        #loading {
+            position: absolute;
+            background-color: #54bbff;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            z-index: 100;
+            display: grid;
+            place-items: center;
+        }
+
+        @keyframes loading {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        #loading img {
+            height: 50px;
+            animation: loading 1s linear infinite;
+        }
     </style>
 </head>
 
@@ -196,6 +224,9 @@
         <div>
             <section>
                 <div class="upload-box" id="upload-box">
+                    <div id="loading" style="display: none;">
+                        <img src="./assets/loading.svg" />
+                    </div>
                     <div id="up-half">
                         <span><img src="./assets/upload.svg" style="height: 1.5rem; margin: 0 10px;" />drop here</span>
                         <p>or <a onclick="document.getElementById('file-input').click()">browse?</a></p>
@@ -224,6 +255,7 @@
             const fileInput = document.getElementById('file-input');
             const upHalf = uploadBox.querySelector("#up-half");
             const lowHalf = uploadBox.querySelector("#low-half");
+            const loadingRotate = document.getElementById('loading');
             let timeoutId;
             let isLowBig = false;
 
@@ -266,8 +298,7 @@
                     if (url == '') {
                         return false;
                     }
-                    uploadBox.style.backgroundColor = '#54bbff';
-                    uploadBox.innerHTML = 'Uploading...';
+                    loadingRotate.style.display = 'grid';
                     fetch('/upload-url', {
                         method: 'POST',
                         headers: {
@@ -312,7 +343,6 @@
             function uploadImage() {
                 const file = fileInput.files[0];
                 if (file) {
-                    uploadBox.style.backgroundColor = '#54bbff';
                     const formData = new FormData();
                     formData.append('file', file);
 
@@ -320,7 +350,7 @@
                     xhr.open('POST', '/upload-image', true);
 
                     xhr.upload.onprogress = function (e) {
-                        uploadBox.innerHTML = 'Uploading...';
+                        loadingRotate.style.display = 'grid';
                     };
 
                     xhr.onload = function () {
