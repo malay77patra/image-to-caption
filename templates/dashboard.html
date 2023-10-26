@@ -17,16 +17,6 @@
         }
 
         /* animations */
-        @keyframes rotate360 {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
         @keyframes slideIn {
             0% {
                 transform: translateY(-150%);
@@ -88,50 +78,6 @@
             padding: 1rem;
         }
 
-        .hrl {
-            background-image: linear-gradient(90deg, transparent, #5643CC, transparent);
-            background-color: transparent;
-            width: 100%;
-            height: 1px;
-        }
-
-        .h-ele {
-            background: linear-gradient(90deg, rgb(248, 215, 246) 0%, rgba(222, 221, 255, 1) 100%);
-            padding: 0.8rem;
-            margin: 1rem;
-            border-radius: 0.5rem;
-            box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #2520F6;
-            gap: 10px;
-            position: relative;
-
-        }
-
-        .h-ele img {
-            height: 1rem;
-        }
-
-        .h-ele-border {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            width: 100%;
-            background: linear-gradient(90deg, #FC5CFF -4%, #2520F6 100%);
-            -webkit-mask: linear-gradient(90deg, #FC5CFF -4%, #2520F6 100%) content-box, linear-gradient(90deg, #FC5CFF -4%, #2520F6 100%);
-            -webkit-mask-composite: xor;
-            padding: 2px;
-            border-radius: 0.5rem;
-        }
-
-        .clock {
-            animation: rotate360 ease-in-out 0.5s;
-        }
 
         .history {
             background-color: rgba(98, 106, 223, .05);
@@ -353,6 +299,48 @@
             background-color: transparent !important;
             animation: loading ease-in-out 1s infinite;
         }
+
+        .current {
+            background-color: rgba(98, 106, 223, .05);
+            margin: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+        }
+
+        .current p {
+            border: 1px solid #cbcad5;
+            margin: 10px !important;
+            margin-bottom: 0 !important;
+            border-radius: 5px;
+            min-height: 3rem;
+            background-color: #ffffff;
+            padding: 5px;
+            font-family: monospace;
+            font-size: 1rem;
+        }
+
+        .current span {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #9c9ba4;
+            border-radius: 5px;
+            background-color: rgba(51, 51, 51, 0.05);
+            cursor: pointer;
+            font-family: "Haas Grot Text R Web", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            transition: all 200ms;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            font-style: italic;
+        }
+
+        .current span:hover {
+            background-color: rgba(45, 44, 44, 0.1);
+        }
     </style>
 </head>
 
@@ -367,13 +355,12 @@
             <img src="./assets/captionify.png" />
             <span>Captionify</span>
         </nav>
-        <div class="hrl"></div>
-        <div class="h-ele"><img src="./assets/history.svg" class="clock" />History<label class="h-ele-border"></label>
+        </div>
+        <div class="current">
+            <p id="caption-box"></p>
+            <span onclick="copyCaption(this)">click to copy</span>
         </div>
         <div class="history">
-            <div>
-                
-            </div>
         </div>
     </section>
     <section class="preview-window">
@@ -382,9 +369,10 @@
 
         </div>
         <div id="bottom-bar" class="bottom-bar" style="display: none;">
-            <button id="change-img" onclick="handleImageChange();"><img src="./assets/change.svg" class="icon" />Change</button>
-            <input placeholder="Start caption with" />
-            <button>Generate✨</button>
+            <button id="change-img" onclick="handleImageChange();"><img src="./assets/change.svg"
+                    class="icon" />Change</button>
+            <input placeholder="Start caption with" id="start-with" />
+            <button onclick="generateCaption();">Generate✨</button>
         </div>
     </section>
     <script>
@@ -394,6 +382,9 @@
         const fileSelect = document.getElementById('file-select');
         const bottomBar = document.getElementById('bottom-bar');
         const changeImg = document.getElementById('change-img');
+        const captionBox = document.getElementById('caption-box');
+        const startWithTxt = document.getElementById('start-with');
+
 
         // functions
         function hideNotification() {
@@ -414,6 +405,7 @@
         }
 
         function showUpload() {
+            cleareCaption();
             previewTab.innerHTML = `<div>
                                         <input id="image-url" /><button onclick="handleUrl();">Upload</button>
                                     </div>
@@ -421,7 +413,7 @@
         }
         function showImage(imgUrl) {
             showBottomBar();
-            previewTab.innerHTML = `<img src="/uploads/${imgUrl}" />`;
+            previewTab.innerHTML = `<img data-fileid="${imgUrl}" src="/uploads/${imgUrl}" />`;
         }
 
         function showLoading() {
@@ -521,13 +513,80 @@
         }
 
         function handleImageChange(imageid = null) {
-            if(imageid == null) {
+            if (imageid == null) {
                 showUpload();
             }
         }
-        // function makeHistory() {
-            
-        // }
+
+        function showCaption(txt) {
+            captionBox.innerHTML = '';
+
+            var words = txt.split(' ');
+            var i = 0;
+            function appendWord() {
+                if (i < words.length) {
+                    captionBox.innerHTML += words[i] + ' ';
+                    i++;
+                    setTimeout(appendWord, 200);
+                }
+            }
+
+            appendWord();
+        }
+
+        function cleareCaption() {
+            captionBox.innerHTML = '';
+        }
+        function copyCaption(itSelf) {
+            const text = captionBox.innerHTML;
+            navigator.clipboard.writeText(text).then(function () {
+                itSelf.innerHTML = 'copied ✔️';
+                setTimeout(() => {
+                    itSelf.innerHTML = 'click to copy';
+                }, 2000);
+            }, function (err) {
+                console.error('Could not copy text: ', err);
+            });
+        }
+
+        function generateCaption() {
+            let currentImg = previewTab.querySelector('img');
+            if (currentImg) {
+                let fileid = currentImg.dataset.fileid;
+                let starttxt = startWithTxt.innerHTML;
+
+                const data = {
+                    'fileid': fileid,
+                    'starttxt': starttxt
+                };
+
+                fetch('/generate-caption', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if(data.error) {
+                            showNotification(data.error);
+                        }else {
+                            showCaption(data.caption);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showNotification('Something went wrong');
+                    });
+            } else {
+                showNotification('Upload image first');
+            }
+        }
+
+
+
+
 
         // setup
         showUpload();
