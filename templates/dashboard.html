@@ -390,6 +390,11 @@
             background-image: url('./assets/history.svg');
             background-size: cover;
         }
+
+        #generate-button img {
+            height: 1rem;
+            animation: loading ease-in-out 1s infinite reverse;
+        }
     </style>
 </head>
 
@@ -423,7 +428,7 @@
             <button id="change-img" onclick="handleImageChange();"><img src="./assets/change.svg"
                     class="icon" />Change</button>
             <input placeholder="Start caption with" id="start-with" />
-            <button onclick="generateCaption();">Generate✨</button>
+            <button onclick="generateCaption();" id="generate-button">Generate✨</button>
         </div>
     </section>
     <script>
@@ -436,17 +441,33 @@
         const captionBox = document.getElementById('caption-box');
         const startWithTxt = document.getElementById('start-with');
         const historyList = document.getElementById('history-list');
+        const generateButton = document.getElementById('generate-button');
 
+
+        // variable
+        let isBuffering = false;
+        let notificationId;
 
         // functions
+        function showBuffer() {
+            isBuffering = true;
+            generateButton.innerHTML = `<img src="./assets/loading.svg" />`;
+        }
+
+        function stopBuffering() {
+            isBuffering = false;
+            generateButton.innerHTML = 'Generate✨';
+        }
+
         function hideNotification() {
             notification.classList.toggle('show-notification', false);
         }
 
         function showNotification(txt) {
             notification.querySelector('.notify-txt').innerHTML = txt;
+            clearTimeout(notificationId);
             notification.classList.toggle('show-notification', true);
-            setTimeout(hideNotification, 5000);
+            notificationId = setTimeout(hideNotification, 5000);
         }
 
         function showDrop() {
@@ -604,11 +625,21 @@
         }
 
         function generateCaption() {
+            if (isBuffering) {
+                showNotification('on processing');
+                return;
+            }
             let currentImg = previewTab.querySelector('img');
             if (currentImg) {
+                showBuffer();
                 let fileid = currentImg.dataset.fileid;
                 let starttxt = startWithTxt.value;
 
+                if (!fileid) {
+                    showNotification('wait for uploadig to be finished');
+                    stopBuffering();
+                    return;
+                }
                 const data = {
                     'fileid': fileid,
                     'starttxt': starttxt
@@ -625,13 +656,16 @@
                     .then(data => {
                         if (data.error) {
                             showNotification(data.error);
+                            stopBuffering();
                         } else {
                             showCaption(data.caption);
+                            stopBuffering();
                         }
                     })
                     .catch(error => {
                         console.error('Error:', error);
                         showNotification('Something went wrong');
+                        stopBuffering();
                     });
             } else {
                 showNotification('Upload image first');
@@ -652,11 +686,12 @@
             let selectedOption = event.target;
             let selectedOptionValue = selectedOption.value;
             let selectedOptionFileId = selectedOption.dataset.fileid;
-            if(selectedOptionValue && selectedOptionFileId) {
+            if (selectedOptionValue && selectedOptionFileId) {
                 captionBox.innerHTML = selectedOptionValue;
                 showImage(selectedOptionFileId);
             }
         }
+
 
 
 
