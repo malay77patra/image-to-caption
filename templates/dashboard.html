@@ -87,6 +87,8 @@
             border-radius: 0.5rem;
             box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
             overflow-y: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
         .preview-tab {
@@ -341,6 +343,53 @@
         .current span:hover {
             background-color: rgba(45, 44, 44, 0.1);
         }
+
+        .history select {
+            outline: none;
+            border: none;
+            height: 100%;
+            background-color: transparent !important;
+            position: relative;
+        }
+
+        .history select::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            height: 100%;
+            width: 50px;
+            z-index: 100;
+            background: rgb(255, 255, 255);
+            background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(231, 222, 248, 1) 100%);
+        }
+
+        .history option {
+            padding: 1rem;
+            background-color: transparent !important;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            overflow-x: hidden;
+            position: relative;
+            padding-left: 2rem !important;
+            font-style: italic;
+            color: #9c9ba4;
+        }
+
+        .history option::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            transform: translate(50%, -50%);
+            left: 0;
+            content: "";
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            background-image: url('./assets/history.svg');
+            background-size: cover;
+        }
     </style>
 </head>
 
@@ -361,6 +410,8 @@
             <span onclick="copyCaption(this)">click to copy</span>
         </div>
         <div class="history">
+            <select size="2" id="history-list" onclick="retriveHistory(event)">
+            </select>
         </div>
     </section>
     <section class="preview-window">
@@ -384,6 +435,7 @@
         const changeImg = document.getElementById('change-img');
         const captionBox = document.getElementById('caption-box');
         const startWithTxt = document.getElementById('start-with');
+        const historyList = document.getElementById('history-list');
 
 
         // functions
@@ -528,6 +580,8 @@
                     captionBox.innerHTML += words[i] + ' ';
                     i++;
                     setTimeout(appendWord, 200);
+                } else {
+                    makeHistory();
                 }
             }
 
@@ -553,7 +607,7 @@
             let currentImg = previewTab.querySelector('img');
             if (currentImg) {
                 let fileid = currentImg.dataset.fileid;
-                let starttxt = startWithTxt.innerHTML;
+                let starttxt = startWithTxt.value;
 
                 const data = {
                     'fileid': fileid,
@@ -569,9 +623,9 @@
                 })
                     .then(response => response.json())
                     .then(data => {
-                        if(data.error) {
+                        if (data.error) {
                             showNotification(data.error);
-                        }else {
+                        } else {
                             showCaption(data.caption);
                         }
                     })
@@ -584,7 +638,25 @@
             }
         }
 
-
+        function makeHistory() {
+            let currentImg = previewTab.querySelector('img');
+            if (currentImg) {
+                let fileid = currentImg.dataset.fileid;
+                let newOption = document.createElement('option');
+                newOption.innerHTML = captionBox.innerHTML;
+                newOption.dataset.fileid = fileid;
+                historyList.prepend(newOption);
+            }
+        }
+        function retriveHistory(event) {
+            let selectedOption = event.target;
+            let selectedOptionValue = selectedOption.value;
+            let selectedOptionFileId = selectedOption.dataset.fileid;
+            if(selectedOptionValue && selectedOptionFileId) {
+                captionBox.innerHTML = selectedOptionValue;
+                showImage(selectedOptionFileId);
+            }
+        }
 
 
 
@@ -596,6 +668,7 @@
         window.addEventListener('drop', (event) => {
             event.preventDefault();
         });
+        showNotification('Welcome, upload your first image to see magic 🪄')
     </script>
 </body>
 
