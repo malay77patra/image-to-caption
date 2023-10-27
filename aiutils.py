@@ -1,27 +1,28 @@
+import requests
 import sys
-from PIL import Image
-from transformers import BlipProcessor, BlipForConditionalGeneration
+import json
 
-# Specify your desired cache directory here
-cache_dir = "models"
+# Load the config.json file
+def load_config_file(file_path):
+    with open(file_path, 'r') as f:
+        return json.load(f)
 
-try:
-    processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-large", cache_dir=cache_dir)
-    model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-large", cache_dir=cache_dir)
+# Load the config file
+config = load_config_file("config.json")
 
-    image_path = sys.argv[2]
-    start_with = sys.argv[1]
+API_URL = config["api_url"]
+headers = config["headers"]
 
-    raw_image = Image.open(image_path).convert('RGB')
-    
-    if start_with:
-        inputs = processor(raw_image, start_with, return_tensors="pt")
-    else:
-        inputs = processor(raw_image, return_tensors="pt")
+def query(filename):
+    with open(filename, "rb") as f:
+        data = f.read()
+    response = requests.post(API_URL, headers=headers, data=data)
+    return response.json()[0]["generated_text"]
 
-    out = model.generate(**inputs)
-    caption = processor.decode(out[0], skip_special_tokens=True)
-    print(caption)
-
-except Exception as e:
-    print(e)
+if __name__ == "__main__":
+    try:
+        start_caption_with = sys.argv[1]
+        image_path = sys.argv[2]
+        print(query(image_path))
+    except Exception as e:
+        print(e)
