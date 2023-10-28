@@ -1,8 +1,8 @@
 from flask import Flask, render_template, request, send_from_directory, jsonify, request
-import subprocess
 import requests
 import os
 from uuid import uuid4
+from aiutils import get_caption
 
 
 app = Flask(__name__)
@@ -81,11 +81,8 @@ def generate_caption():
         data = request.get_json()
         image_path = os.path.join("uploads", data['fileid'])
         start_with = data['starttxt']
-        process = subprocess.Popen(['python', 'aiutils.py', start_with, image_path], stdout=subprocess.PIPE)
-        output, _ = process.communicate()
-        caption = output.decode('utf-8').strip()
-        print(caption)
-        return jsonify({"caption": caption})
+        prediction =  get_caption(start_with, image_path)
+        return jsonify({"caption": prediction})
     except Exception as e:
         print(e)
         return jsonify({"error": "something went wrong"})

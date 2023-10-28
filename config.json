@@ -1,6 +1,0 @@
-{
-    "api_url": "https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-large",
-    "headers": {
-        "Authorization": "Bearer xxx"
-    }
-}
