@@ -80,8 +80,7 @@ def generate_caption():
     try:
         data = request.get_json()
         image_path = os.path.join("uploads", data['fileid'])
-        start_with = data['starttxt']
-        prediction =  get_caption(image_path, start_with)
+        prediction =  get_caption(image_path)
         return jsonify({"caption": prediction})
     except Exception as e:
         print(e)
