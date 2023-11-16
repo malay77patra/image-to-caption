@@ -1,21 +1,12 @@
-# from gradio_client import Client
-
-# client = Client("https://malay-91418-image-info.hf.space/--replicas/ljhkq/")
-
-# def get_caption(img_url, txt):
-#     result = client.predict(
-#             img_url,
-#             txt,
-#             api_name="/predict"
-#     )
-#     return result
-
 import requests
 from dotenv import load_dotenv
 import os
 
 load_dotenv()
 token = os.getenv("TOKEN")
+if not token:
+    print("please make .env file with TOKEN=<your higging face token>\nPlease see .env.example file and rename it to .env after putting your token")
+    exit()
 
 API_URL = "https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-large"
 headers = {"Authorization": f"Bearer {token}"}
@@ -25,3 +16,6 @@ def get_caption(filename):
         data = f.read()
     response = requests.post(API_URL, headers=headers, data=data)
     return response.json()[0]["generated_text"]
+
+
+print(get_caption("./cat.jpg"))
