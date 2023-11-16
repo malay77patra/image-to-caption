@@ -16,6 +16,3 @@ def get_caption(filename):
         data = f.read()
     response = requests.post(API_URL, headers=headers, data=data)
     return response.json()[0]["generated_text"]
-
-
-print(get_caption("./cat.jpg"))
