@@ -8,6 +8,7 @@ const captionBox = document.getElementById('caption-box');
 const startWithTxt = document.getElementById('start-with');
 const historyList = document.getElementById('history-list');
 const generateButton = document.getElementById('generate-button');
+const audioPreview = document.getElementById("audio-preview");
 
 
 // variable
@@ -45,10 +46,18 @@ function hideDrop() {
 
 function showUpload() {
     cleareCaption();
+    cleanAudio();
     previewTab.innerHTML = `<div>
         <input id="image-url" /><button onclick="handleUrl();">Upload</button>
     </div>
     <aside onclick="fileSelect.click();">• <a>click</a> to browse or drop image file</aside>`;
+}
+function showAudio(audioUrl) {
+    audioPreview.src = `/uploads/${audioUrl}`;
+}
+
+function cleanAudio(){
+    audioPreview.src = "";
 }
 function showImage(imgUrl) {
     showBottomBar();
@@ -157,6 +166,13 @@ function handleImageChange(imageid = null) {
     }
 }
 
+function getAudioFileName() {
+    const imgSrc = previewTab.querySelector("img").src;
+    const filenameWithoutExtension = imgSrc.split('/').pop().split('.')[0];
+    return `${filenameWithoutExtension}.mp3`;
+}
+
+
 function showCaption(txt) {
     captionBox.innerHTML = '';
 
@@ -169,6 +185,7 @@ function showCaption(txt) {
             setTimeout(appendWord, 200);
         } else {
             makeHistory();
+            showAudio(getAudioFileName());
         }
     }
 
@@ -255,6 +272,7 @@ function retriveHistory(event) {
     if (selectedOptionValue && selectedOptionFileId) {
         captionBox.innerHTML = selectedOptionValue;
         showImage(selectedOptionFileId);
+        showAudio(getAudioFileName());
     }
 }
 

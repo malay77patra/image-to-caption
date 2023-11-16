@@ -79,13 +79,14 @@ def get_file(img_name):
 def generate_caption():
     try:
         data = request.get_json()
-        image_path = os.path.join("uploads", data['fileid'])
-        prediction =  get_caption(image_path)
+        prediction =  get_caption(data["fileid"])
         return jsonify({"caption": prediction})
     except Exception as e:
         print(e)
-        return jsonify({"error": "something went wrong"})
-    
+        return jsonify({"error": f"error: {e}"})
+@app.route("/favicon.ico")
+def get_favicon():
+    return send_from_directory("public", "favicon.ico")
 
 if __name__ == '__main__':
     app.run(debug=True)
