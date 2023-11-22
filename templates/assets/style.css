@@ -387,3 +387,35 @@ body {
     height: 1rem;
     animation: loading ease-in-out 1s infinite reverse;
 }
+
+
+.button-44 {
+    background: #f14763;
+    border-radius: 11px;
+    box-sizing: border-box;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    font-family: Mija, -apple-system, BlinkMacSystemFont, Roboto, "Roboto Slab", "Droid Serif", "Segoe UI", system-ui, Arial, sans-serif;
+    font-weight: 600;
+    letter-spacing: 1px;
+    justify-content: center;
+    line-height: 33.4929px;
+    text-align: center;
+    text-decoration: none;
+    text-decoration-skip-ink: auto;
+    text-shadow: rgba(0, 0, 0, .3) 1px 1px 1px;
+    text-underline-offset: 1px;
+    transition: all .2s ease-in-out;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    word-break: break-word;
+    border: 0;
+    margin: 10px;
+    box-sizing: border-box;
+}
+
+.button-44:hover {
+    background-color: #cc3f56;
+}

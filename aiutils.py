@@ -8,7 +8,7 @@ language = 'en'
 load_dotenv()
 token = os.getenv("TOKEN")
 if not token:
-    print("please make .env file with TOKEN=<your higging face token>\nPlease see .env.example file and rename it to .env after putting your token")
+    print("please make .env file with TOKEN=<your higging face token>\nsee .env.example file and rename it to .env after putting your token")
     exit()
 
 API_URL = "https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-large"

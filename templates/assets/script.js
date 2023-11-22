@@ -56,7 +56,7 @@ function showAudio(audioUrl) {
     audioPreview.src = `/uploads/${audioUrl}`;
 }
 
-function cleanAudio(){
+function cleanAudio() {
     audioPreview.src = "";
 }
 function showImage(imgUrl) {
@@ -263,8 +263,10 @@ function makeHistory() {
         newOption.innerHTML = captionBox.innerHTML;
         newOption.dataset.fileid = fileid;
         historyList.prepend(newOption);
+        storeInLocalStorage({ 'caption': captionBox.innerHTML, 'fileid': fileid });
     }
 }
+
 function retriveHistory(event) {
     let selectedOption = event.target;
     let selectedOptionValue = selectedOption.value;
@@ -276,11 +278,34 @@ function retriveHistory(event) {
     }
 }
 
+function clearHistory() {
+    localStorage.clear();
+    historyList.innerHTML = '';
+    showNotification('History cleared');
+}
+
+//  browser storage 
+function storeInLocalStorage(jsonObject) {
+    let postsArray = JSON.parse(localStorage.getItem('posts')) || [];
+    postsArray.push(jsonObject);
+    localStorage.setItem('posts', JSON.stringify(postsArray));
+}
+
+function getFromLocalStorage() {
+    let postsArray = JSON.parse(localStorage.getItem('posts')) || [];
+    postsArray.forEach(post => {
+        let newOption = document.createElement('option');
+        newOption.innerHTML = post.caption;
+        newOption.dataset.fileid = post.fileid;
+        historyList.prepend(newOption);
+    });
+}
 
 
 
 // setup
 showUpload();
+getFromLocalStorage();
 window.addEventListener('dragover', (event) => {
     event.preventDefault();
 });
