@@ -230,6 +230,7 @@ function makeHistory() {
                     chatHistory.unshift(historyItem);
                     const newOption = document.createElement('option');
                     newOption.innerHTML = historyItem.caption;
+                    newOption.dataset.index = historyList.childElementCount;
                     historyList.prepend(newOption);
                     saveHistory();
                 }
@@ -268,7 +269,7 @@ function getFromLocalStorage() {
         const newOption = document.createElement('option');
         newOption.innerHTML = post.caption;
         newOption.dataset.index = index;
-        historyList.prepend(newOption);
+        historyList.append(newOption);
     });
 
 }
