@@ -9,11 +9,14 @@ const startWithTxt = document.getElementById('start-with');
 const historyList = document.getElementById('history-list');
 const generateButton = document.getElementById('generate-button');
 const audioPreview = document.getElementById("audio-preview");
+const settingsPopup = document.getElementById("settings-popup");
+const languageSelect = document.getElementById("language-select");
 
 
 // variable
 let isBuffering = false;
 let notificationId;
+let chatHistory = [];
 
 // functions
 function showBuffer() {
@@ -24,6 +27,10 @@ function showBuffer() {
 function stopBuffering() {
     isBuffering = false;
     generateButton.innerHTML = 'Generate✨';
+}
+
+function toggleSettings() {
+    settingsPopup.classList.toggle('hide-settings');
 }
 
 function hideNotification() {
@@ -46,22 +53,15 @@ function hideDrop() {
 
 function showUpload() {
     cleareCaption();
-    cleanAudio();
     previewTab.innerHTML = `<div>
         <input id="image-url" /><button onclick="handleUrl();">Upload</button>
     </div>
     <aside onclick="fileSelect.click();">• <a>click</a> to browse or drop image file</aside>`;
 }
-function showAudio(audioUrl) {
-    audioPreview.src = `/uploads/${audioUrl}`;
-}
 
-function cleanAudio() {
-    audioPreview.src = "";
-}
 function showImage(imgUrl) {
     showBottomBar();
-    previewTab.innerHTML = `<img data-fileid="${imgUrl}" src="/uploads/${imgUrl}" />`;
+    previewTab.innerHTML = `<img src="${imgUrl}" />`;
 }
 
 function showLoading() {
@@ -76,100 +76,61 @@ function handleDrop(event) {
         const fileList = new DataTransfer();
         fileList.items.add(file);
         fileSelect.files = fileList.files;
-        uploadImage();
+        const objectUrl = URL.createObjectURL(file);
+        showImage(objectUrl);
     } else {
         showNotification('Only image files are allowed !');
     }
 }
+
+
 function handleSelect(event) {
     const file = event.target.files[0];
     if (file && file.type.split('/')[0] === 'image') {
-        uploadImage(file);
+        const objectUrl = URL.createObjectURL(file);
+        showImage(objectUrl);
     } else {
         showNotification('Only image files are allowed!');
     }
 }
 
-function uploadImage() {
-    showLoading();
-    const file = fileSelect.files[0];
-    if (file) {
-        const formData = new FormData();
-        formData.append('file', file);
-
-        fetch('/upload-image', {
-            method: 'POST',
-            body: formData
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    showNotification(data.error);
-                    showUpload();
-                } else {
-                    showImage(data.fileid);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showNotification('Something went wrong !');
-                showUpload();
-            });
-    } else {
-        showNotification('No file selected');
-        showUpload();
-    }
-}
 
 function handleUrl() {
-    const imageUrlInput = document.getElementById('image-url').value;
-    if (!imageUrlInput) {
+    const imageUr = document.getElementById('image-url').value;
+    if (!imageUr) {
         showNotification('Enter image url first');
         return;
     }
 
-    const data = { 'url': imageUrlInput };
     showLoading();
 
-    fetch('/upload-url', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
+    fetch(imageUr, {
+        method: 'HEAD'
     })
-        .then(response => response.json())
-        .then(data => {
-            if (data.error) {
-                showNotification(data.error);
-                showUpload();
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.split('/')[0] === 'image') {
+                showImage(imageUr);
             } else {
-                showImage(data.fileid);
+                showNotification('The URL does not point to an image');
+                showUpload();
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            showNotification('Something went wrong');
+            showNotification('Not a valid image url');
             showUpload();
         });
 }
+
 
 function showBottomBar() {
     if (bottomBar.style.display == 'none') {
         bottomBar.style.display = 'flex';
     }
-}
-
-function handleImageChange(imageid = null) {
-    if (imageid == null) {
-        showUpload();
-    }
-}
-
-function getAudioFileName() {
-    const imgSrc = previewTab.querySelector("img").src;
-    const filenameWithoutExtension = imgSrc.split('/').pop().split('.')[0];
-    return `${filenameWithoutExtension}.mp3`;
 }
 
 
@@ -185,7 +146,6 @@ function showCaption(txt) {
             setTimeout(appendWord, 200);
         } else {
             makeHistory();
-            showAudio(getAudioFileName());
         }
     }
 
@@ -195,13 +155,15 @@ function showCaption(txt) {
 function cleareCaption() {
     captionBox.innerHTML = '';
 }
+
 function copyCaption(itSelf) {
     const text = captionBox.innerHTML;
     navigator.clipboard.writeText(text).then(function () {
-        itSelf.innerHTML = 'copied ✔️';
+        showNotification("Copied to clipboard");
+        itSelf.style.scale = 1.1;
         setTimeout(() => {
-            itSelf.innerHTML = 'click to copy';
-        }, 2000);
+            itSelf.style.scale = 1;
+        }, 100);
     }, function (err) {
         console.error('Could not copy text: ', err);
     });
@@ -209,107 +171,130 @@ function copyCaption(itSelf) {
 
 function generateCaption() {
     if (isBuffering) {
-        showNotification('on processing');
+        showNotification('Caption genereting is still in progress');
         return;
     }
     let currentImg = previewTab.querySelector('img');
-    if (currentImg) {
-        showBuffer();
-        let fileid = currentImg.dataset.fileid;
-        let starttxt = startWithTxt.value;
-
-        if (!fileid) {
-            showNotification('wait for uploadig to be finished');
-            stopBuffering();
-            return;
-        }
-        const data = {
-            'fileid': fileid,
-            'starttxt': starttxt
-        };
-
-        fetch('/generate-caption', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.error) {
-                    showNotification(data.error);
-                    stopBuffering();
-                } else {
-                    showCaption(data.caption);
-                    stopBuffering();
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showNotification('Something went wrong');
-                stopBuffering();
-            });
-    } else {
-        showNotification('Upload image first');
+    if (!currentImg) {
+        showNotification('No image selected');
+        return;
     }
+    showBuffer();
+
+    fetch(currentImg.src)
+        .then(response => response.blob())
+        .then(blob => {
+            const data = new FormData();
+            data.append('image', blob);
+            data.append('lang', languageSelect.value);
+
+            fetch('/generate-caption', {
+                method: 'POST',
+                body: data
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        showNotification(data.error);
+                    } else {
+                        showCaption(data.caption);
+                    }
+                    stopBuffering();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Something went wrong');
+                    stopBuffering();
+                });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Something went wrong');
+            stopBuffering();
+        });
 }
+
 
 function makeHistory() {
-    let currentImg = previewTab.querySelector('img');
+    const currentImg = previewTab.querySelector('img');
     if (currentImg) {
-        let fileid = currentImg.dataset.fileid;
-        let newOption = document.createElement('option');
-        newOption.innerHTML = captionBox.innerHTML;
-        newOption.dataset.fileid = fileid;
-        historyList.prepend(newOption);
-        storeInLocalStorage({ 'caption': captionBox.innerHTML, 'fileid': fileid });
+        fetch(currentImg.src)
+            .then(response => response.blob())
+            .then(blob => {
+                const reader = new FileReader();
+                reader.onloadend = function () {
+                    const image = reader.result;
+                    const historyItem = { 'caption': captionBox.innerHTML, 'image': image };
+                    chatHistory.unshift(historyItem);
+                    const newOption = document.createElement('option');
+                    newOption.innerHTML = historyItem.caption;
+                    historyList.prepend(newOption);
+                    saveHistory();
+                }
+                reader.readAsDataURL(blob);
+            });
     }
 }
 
-function retriveHistory(event) {
-    let selectedOption = event.target;
-    let selectedOptionValue = selectedOption.value;
-    let selectedOptionFileId = selectedOption.dataset.fileid;
-    if (selectedOptionValue && selectedOptionFileId) {
-        captionBox.innerHTML = selectedOptionValue;
-        showImage(selectedOptionFileId);
-        showAudio(getAudioFileName());
-    }
+function saveHistory() {
+    localStorage.setItem('posts', JSON.stringify(chatHistory));
 }
+
 
 function clearHistory() {
-    localStorage.clear();
+    chatHistory = [];
+    saveHistory();
     historyList.innerHTML = '';
+    cleareCaption();
     showNotification('History cleared');
 }
 
-//  browser storage 
-function storeInLocalStorage(jsonObject) {
-    let postsArray = JSON.parse(localStorage.getItem('posts')) || [];
-    postsArray.push(jsonObject);
-    localStorage.setItem('posts', JSON.stringify(postsArray));
+function retriveHistory(event) {
+    const selectedOption = event.target;
+    const selectedOptionIndex = selectedOption.dataset.index;
+    if (selectedOptionIndex) {
+        const historyItem = chatHistory[selectedOptionIndex];
+        captionBox.innerHTML = historyItem.caption;
+        showImage(historyItem.image);
+    }
+
 }
 
 function getFromLocalStorage() {
-    let postsArray = JSON.parse(localStorage.getItem('posts')) || [];
-    postsArray.forEach(post => {
-        let newOption = document.createElement('option');
+    chatHistory = JSON.parse(localStorage.getItem('posts')) || [];
+    chatHistory.forEach((post, index) => {
+        const newOption = document.createElement('option');
         newOption.innerHTML = post.caption;
-        newOption.dataset.fileid = post.fileid;
+        newOption.dataset.index = index;
         historyList.prepend(newOption);
     });
+
 }
 
+function storeLanguage(lang){
+    localStorage.setItem('lang', lang);
+}
 
+function handleImageChange() {
+    showUpload();
+    cleareCaption();
+}
+
+function isUsingFirstTime() {
+    return localStorage.getItem('isFirst') == undefined;
+}
 
 // setup
+if (isUsingFirstTime()) {
+    showNotification('Welcome, upload your first image to see magic 🪄');
+    localStorage.setItem('isFirst', 'no');
+}
 showUpload();
 getFromLocalStorage();
+languageSelect.value = localStorage.getItem('lang') || 'en';
 window.addEventListener('dragover', (event) => {
     event.preventDefault();
 });
 window.addEventListener('drop', (event) => {
     event.preventDefault();
 });
-showNotification('Welcome, upload your first image to see magic 🪄')

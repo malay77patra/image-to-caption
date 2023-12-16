@@ -79,6 +79,7 @@ def get_file(img_name):
 def generate_caption():
     try:
         data = request.get_json()
+        lang = data["lang"]
         prediction =  get_caption(data["fileid"])
         return jsonify({"caption": prediction})
     except Exception as e:
