@@ -11,6 +11,8 @@ const generateButton = document.getElementById('generate-button');
 const audioPreview = document.getElementById("audio-preview");
 const settingsPopup = document.getElementById("settings-popup");
 const languageSelect = document.getElementById("language-select");
+const voiceSelect = document.getElementById("voice-select");
+const speakButton = document.getElementById("speak-button");
 
 
 // variable
@@ -271,8 +273,12 @@ function getFromLocalStorage() {
 
 }
 
-function storeLanguage(lang){
+function storeLanguage(lang) {
     localStorage.setItem('lang', lang);
+}
+
+function storeVoice(voice) {
+    localStorage.setItem('voice', voice);
 }
 
 function handleImageChange() {
@@ -284,6 +290,41 @@ function isUsingFirstTime() {
     return localStorage.getItem('isFirst') == undefined;
 }
 
+
+// voice 
+function loadVoices() {
+    var voices = speechSynthesis.getVoices();
+    if (voices.length > 0) {
+        voices.forEach((voice, index) => {
+            const option = document.createElement('option');
+            option.value = voice.name;
+            option.innerHTML = voice.name;
+            voiceSelect.appendChild(option);
+        });
+        voiceSelect.value = localStorage.getItem('voice') || voices[0].name;
+    }
+}
+
+function speak() {
+    speakButton.classList.add('speaking');
+    speakButton.disabled = true;
+    var msg = new SpeechSynthesisUtterance();
+    msg.text = captionBox.innerHTML;
+    if (voiceSelect.value) {
+        msg.voice = speechSynthesis.getVoices().filter(function (voice) { return voice.name == voiceSelect.value; })[0];
+    }
+    window.speechSynthesis.speak(msg);
+    msg.onend = function (event) {
+        speakButton.classList.remove('speaking');
+        speakButton.disabled = false;
+    }
+}
+
+
+// Listen for the 'voiceschanged' event
+window.speechSynthesis.onvoiceschanged = loadVoices;
+
+
 // setup
 if (isUsingFirstTime()) {
     showNotification('Welcome, upload your first image to see magic 🪄');
@@ -292,6 +333,9 @@ if (isUsingFirstTime()) {
 showUpload();
 getFromLocalStorage();
 languageSelect.value = localStorage.getItem('lang') || 'en';
+if (!('speechSynthesis' in window)) {
+    showNotification('Your browser does not support speech synthesis');
+}
 window.addEventListener('dragover', (event) => {
     event.preventDefault();
 });

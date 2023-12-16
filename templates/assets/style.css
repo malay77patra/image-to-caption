@@ -299,6 +299,10 @@ body {
     height: 1rem;
 }
 
+.speaking {
+    filter: invert(61%) sepia(61%) saturate(439%) hue-rotate(87deg) brightness(101%) contrast(89%);
+}
+
 #notification {
     position: absolute;
     top: 10px;

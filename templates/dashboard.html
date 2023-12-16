@@ -24,7 +24,7 @@
             <p id="caption-box"></p>
             <div class="controllers">
                 <img src="./assets/copy.svg" class="controll" onclick="copyCaption(this)" />
-                <img src="./assets/sound.svg" class="controll" />
+                <img src="./assets/sound.svg" class="controll" onclick="speak()" id="speak-button"/>
             </div>
         </div>
         <div class="history">
@@ -40,7 +40,8 @@
         </div>
         <div id="bottom-bar" class="bottom-bar" style="display: none;">
             <div class="setting-popup hide-settings" id="settings-popup">
-                <label>Language</label>
+                <span style="display: block; margin-left: auto; cursor: pointer;" onclick="toggleSettings()">&#10060;</span>
+                <label>Languages</label>
                 <select value="en" id="language-select" onchange="storeLanguage(this.value)">
                     <option value="af">Afrikaans</option>
                     <option value="sq">Albanian</option>
@@ -150,6 +151,8 @@
                     <option value="yo">Yoruba</option>
                     <option value="zu">Zulu</option>
                 </select>
+                <label>Voices</label>
+                <select id="voice-select" onchange="storeVoice(this.value)"></select>
             </div>
             <button id="change-img" onclick="handleImageChange();"><img src="./assets/change.svg"
                     class="icon" />Change</button>
