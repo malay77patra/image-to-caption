@@ -315,6 +315,10 @@ function speak() {
         msg.voice = speechSynthesis.getVoices().filter(function (voice) { return voice.name == voiceSelect.value; })[0];
     }
     window.speechSynthesis.speak(msg);
+    // console log if not supported language for text input 
+    msg.onerror = function (event) {
+        console.log('SpeechSynthesisUtterance.onerror');
+    }
     msg.onend = function (event) {
         speakButton.classList.remove('speaking');
         speakButton.disabled = false;
